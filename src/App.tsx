@@ -93,10 +93,12 @@ const App: React.FC = () => {
   });
 
   const [isLoading, setIsLoading] = useState(true);
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error'>('synced');
 
   // Initial Data Fetch
   useEffect(() => {
     const fetchAllData = async () => {
+      setSyncStatus('syncing');
       try {
         const [
           dbProfile,
@@ -135,8 +137,10 @@ const App: React.FC = () => {
         if (dbSavingsGoals.length > 0) setSavingsGoals(dbSavingsGoals);
         if (dbSavingsRecords.length > 0) setSavingsRecords(dbSavingsRecords);
         if (dbSalaryHistory.length > 0) setSalaryHistory(dbSalaryHistory);
+        setSyncStatus('synced');
       } catch (error) {
         console.error('Error fetching data from Supabase:', error);
+        setSyncStatus('error');
         // Fallback to default data if tables don't exist yet
       } finally {
         setIsLoading(false);
@@ -146,50 +150,63 @@ const App: React.FC = () => {
     fetchAllData();
   }, []);
 
+  // Sync Helper
+  const syncWithSupabase = useCallback(async (syncFn: () => Promise<void>) => {
+    if (isLoading) return;
+    setSyncStatus('syncing');
+    try {
+      await syncFn();
+      setSyncStatus('synced');
+    } catch (error) {
+      console.error('Sync error:', error);
+      setSyncStatus('error');
+    }
+  }, [isLoading]);
+
   // Sync Handlers
   useEffect(() => {
-    if (!isLoading) supabaseService.updateProfile(profile).catch(console.error);
-  }, [profile, isLoading]);
+    syncWithSupabase(() => supabaseService.updateProfile(profile));
+  }, [profile, syncWithSupabase]);
 
   useEffect(() => {
-    if (!isLoading) supabaseService.syncTransactions(transactions).catch(console.error);
-  }, [transactions, isLoading]);
+    syncWithSupabase(() => supabaseService.syncTransactions(transactions));
+  }, [transactions, syncWithSupabase]);
 
   useEffect(() => {
-    if (!isLoading) supabaseService.syncReminders(reminders).catch(console.error);
-  }, [reminders, isLoading]);
+    syncWithSupabase(() => supabaseService.syncReminders(reminders));
+  }, [reminders, syncWithSupabase]);
 
   useEffect(() => {
-    if (!isLoading) supabaseService.syncAttendance(attendanceList).catch(console.error);
-  }, [attendanceList, isLoading]);
+    syncWithSupabase(() => supabaseService.syncAttendance(attendanceList));
+  }, [attendanceList, syncWithSupabase]);
 
   useEffect(() => {
-    if (!isLoading) supabaseService.syncBills(bills).catch(console.error);
-  }, [bills, isLoading]);
+    syncWithSupabase(() => supabaseService.syncBills(bills));
+  }, [bills, syncWithSupabase]);
 
   useEffect(() => {
-    if (!isLoading) supabaseService.syncBettingRecords(bettingRecords).catch(console.error);
-  }, [bettingRecords, isLoading]);
+    syncWithSupabase(() => supabaseService.syncBettingRecords(bettingRecords));
+  }, [bettingRecords, syncWithSupabase]);
 
   useEffect(() => {
-    if (!isLoading) supabaseService.syncLeaveQuotas(leaveQuotas).catch(console.error);
-  }, [leaveQuotas, isLoading]);
+    syncWithSupabase(() => supabaseService.syncLeaveQuotas(leaveQuotas));
+  }, [leaveQuotas, syncWithSupabase]);
 
   useEffect(() => {
-    if (!isLoading) supabaseService.syncLeaveHistory(leaveHistory).catch(console.error);
-  }, [leaveHistory, isLoading]);
+    syncWithSupabase(() => supabaseService.syncLeaveHistory(leaveHistory));
+  }, [leaveHistory, syncWithSupabase]);
 
   useEffect(() => {
-    if (!isLoading) supabaseService.syncSavingsGoals(savingsGoals).catch(console.error);
-  }, [savingsGoals, isLoading]);
+    syncWithSupabase(() => supabaseService.syncSavingsGoals(savingsGoals));
+  }, [savingsGoals, syncWithSupabase]);
 
   useEffect(() => {
-    if (!isLoading) supabaseService.syncSavingsRecords(savingsRecords).catch(console.error);
-  }, [savingsRecords, isLoading]);
+    syncWithSupabase(() => supabaseService.syncSavingsRecords(savingsRecords));
+  }, [savingsRecords, syncWithSupabase]);
 
   useEffect(() => {
-    if (!isLoading) supabaseService.syncSalaryHistory(salaryHistory).catch(console.error);
-  }, [salaryHistory, isLoading]);
+    syncWithSupabase(() => supabaseService.syncSalaryHistory(salaryHistory));
+  }, [salaryHistory, syncWithSupabase]);
 
   // Toast System
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -449,6 +466,7 @@ const App: React.FC = () => {
           setTheme={setTheme} 
           profile={profile}
           onMenuClick={() => setIsMobileMenuOpen(true)}
+          syncStatus={syncStatus}
         />
         
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4 md:p-8 bg-white dark:bg-slate-950 transition-colors duration-300">

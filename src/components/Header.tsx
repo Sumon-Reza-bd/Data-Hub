@@ -13,7 +13,7 @@ interface HeaderProps {
     role: string;
     imageUrl: string;
   };
-  isSyncing?: boolean;
+  syncStatus?: 'synced' | 'syncing' | 'error';
   theme: ThemeType;
   setTheme: (theme: ThemeType) => void;
 }
@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({
   onMenuClick, 
   language, 
   profile, 
-  isSyncing,
+  syncStatus = 'synced',
   theme,
   setTheme
 }) => {
@@ -84,10 +84,22 @@ const Header: React.FC<HeaderProps> = ({
           <h1 className="text-sm md:text-base font-black text-gray-900 dark:text-gray-100 truncate uppercase tracking-tight">
             {t[activeTab]}
           </h1>
-          {isSyncing && (
+          {syncStatus === 'syncing' && (
             <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-full border border-indigo-100 dark:border-indigo-800/20">
                <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-pulse" />
                <span className="text-[9px] font-black uppercase text-indigo-600 tracking-tighter hidden xs:inline">Syncing</span>
+            </div>
+          )}
+          {syncStatus === 'error' && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-rose-50/50 dark:bg-rose-900/10 rounded-full border border-rose-100 dark:border-rose-800/20">
+               <div className="w-1.5 h-1.5 bg-rose-600 rounded-full" />
+               <span className="text-[9px] font-black uppercase text-rose-600 tracking-tighter hidden xs:inline">Sync Error</span>
+            </div>
+          )}
+          {syncStatus === 'synced' && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-full border border-emerald-100 dark:border-emerald-800/20">
+               <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full" />
+               <span className="text-[9px] font-black uppercase text-emerald-600 tracking-tighter hidden xs:inline">Synced</span>
             </div>
           )}
         </div>
