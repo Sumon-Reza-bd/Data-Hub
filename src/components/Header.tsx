@@ -14,6 +14,8 @@ interface HeaderProps {
     imageUrl: string;
   };
   syncStatus?: 'synced' | 'syncing' | 'error';
+  onRefresh?: () => void;
+  lastSynced?: Date | null;
   theme: ThemeType;
   setTheme: (theme: ThemeType) => void;
 }
@@ -24,6 +26,8 @@ const Header: React.FC<HeaderProps> = ({
   language, 
   profile, 
   syncStatus = 'synced',
+  onRefresh,
+  lastSynced,
   theme,
   setTheme
 }) => {
@@ -48,7 +52,11 @@ const Header: React.FC<HeaderProps> = ({
       [AppTab.SETTINGS]: 'Settings',
       search: 'Search resources...',
       plan: 'Premium Plan',
-      close: 'Close Preview'
+      close: 'Close Preview',
+      syncing: 'Syncing',
+      synced: 'Synced',
+      syncError: 'Sync Error',
+      refresh: 'Refresh Data'
     },
     bn: {
       [AppTab.DASHBOARD]: 'ড্যাশবোর্ড',
@@ -63,11 +71,20 @@ const Header: React.FC<HeaderProps> = ({
       [AppTab.SETTINGS]: 'সেটিংস',
       search: 'অনুসন্ধান করুন...',
       plan: 'প্রিমিয়াম প্ল্যান',
-      close: 'বন্ধ করুন'
+      close: 'বন্ধ করুন',
+      syncing: 'সিঙ্ক হচ্ছে',
+      synced: 'সিঙ্ক হয়েছে',
+      syncError: 'সিঙ্ক ত্রুটি',
+      refresh: 'রিফ্রেশ করুন'
     }
   };
 
   const t = translations[language];
+
+  const formatLastSynced = (date: Date | null) => {
+    if (!date) return '';
+    return date.toLocaleTimeString(language === 'bn' ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+  };
 
   return (
     <header className="sticky top-0 z-40 h-14 w-full flex items-center justify-between px-4 md:px-6 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm shrink-0 transition-colors">
@@ -84,24 +101,44 @@ const Header: React.FC<HeaderProps> = ({
           <h1 className="text-sm md:text-base font-black text-gray-900 dark:text-gray-100 truncate uppercase tracking-tight">
             {t[activeTab]}
           </h1>
-          {syncStatus === 'syncing' && (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-full border border-indigo-100 dark:border-indigo-800/20">
-               <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-pulse" />
-               <span className="text-[9px] font-black uppercase text-indigo-600 tracking-tighter hidden xs:inline">Syncing</span>
-            </div>
-          )}
-          {syncStatus === 'error' && (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-rose-50/50 dark:bg-rose-900/10 rounded-full border border-rose-100 dark:border-rose-800/20">
-               <div className="w-1.5 h-1.5 bg-rose-600 rounded-full" />
-               <span className="text-[9px] font-black uppercase text-rose-600 tracking-tighter hidden xs:inline">Sync Error</span>
-            </div>
-          )}
-          {syncStatus === 'synced' && (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-full border border-emerald-100 dark:border-emerald-800/20">
-               <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full" />
-               <span className="text-[9px] font-black uppercase text-emerald-600 tracking-tighter hidden xs:inline">Synced</span>
-            </div>
-          )}
+          
+          <div className="flex items-center gap-2">
+            {syncStatus === 'syncing' && (
+              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-full border border-indigo-100 dark:border-indigo-800/20">
+                 <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-pulse" />
+                 <span className="text-[9px] font-black uppercase text-indigo-600 tracking-tighter hidden xs:inline">{t.syncing}</span>
+              </div>
+            )}
+            {syncStatus === 'error' && (
+              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-rose-50/50 dark:bg-rose-900/10 rounded-full border border-rose-100 dark:border-rose-800/20">
+                 <div className="w-1.5 h-1.5 bg-rose-600 rounded-full" />
+                 <span className="text-[9px] font-black uppercase text-rose-600 tracking-tighter hidden xs:inline">{t.syncError}</span>
+              </div>
+            )}
+            {syncStatus === 'synced' && (
+              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-full border border-emerald-100 dark:border-emerald-800/20">
+                 <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full" />
+                 <span className="text-[9px] font-black uppercase text-emerald-600 tracking-tighter hidden xs:inline">{t.synced}</span>
+              </div>
+            )}
+            
+            {lastSynced && (
+              <span className="text-[8px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-tighter hidden sm:inline">
+                {formatLastSynced(lastSynced)}
+              </span>
+            )}
+
+            {onRefresh && (
+              <button 
+                onClick={onRefresh}
+                disabled={syncStatus === 'syncing'}
+                className="p-1 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors disabled:opacity-50"
+                title={t.refresh}
+              >
+                <Maximize2 size={12} className={syncStatus === 'syncing' ? 'animate-spin' : ''} />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="h-6 w-px bg-gray-200 dark:bg-slate-800 mx-2 hidden xs:block"></div>

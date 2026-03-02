@@ -25,6 +25,7 @@ interface BillInfoViewProps {
   onAddTransaction?: (tx: Omit<Transaction, 'id'>) => string;
   onEditTransaction?: (tx: Transaction) => void;
   onDeleteTransaction?: (id: string) => void;
+  onDeleteBill?: (id: string) => void;
   showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
@@ -34,6 +35,7 @@ const BillInfoView: React.FC<BillInfoViewProps> = ({
   onAddTransaction = () => '', 
   onEditTransaction = () => {}, 
   onDeleteTransaction = () => {},
+  onDeleteBill,
   showToast = () => {}
 }) => {
   const [selectedYear, setSelectedYear] = useState<string>('2026');
@@ -228,7 +230,11 @@ const BillInfoView: React.FC<BillInfoViewProps> = ({
       if (recordToDelete.transactionId) {
         onDeleteTransaction(recordToDelete.transactionId);
       }
-      setBills(prev => prev.filter(b => b.id !== recordToDelete.id));
+      if (onDeleteBill) {
+        onDeleteBill(recordToDelete.id);
+      } else {
+        setBills(prev => prev.filter(b => b.id !== recordToDelete.id));
+      }
       setIsDeleteModalOpen(false);
       setRecordToDelete(null);
       showToast?.('Bill record deleted!', 'success');

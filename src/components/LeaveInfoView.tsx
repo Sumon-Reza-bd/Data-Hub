@@ -32,6 +32,7 @@ interface LeaveInfoViewProps {
   setLeaveQuotas?: React.Dispatch<React.SetStateAction<LeaveType[]>>;
   leaveHistory?: LeaveRecord[];
   setLeaveHistory?: React.Dispatch<React.SetStateAction<LeaveRecord[]>>;
+  onDelete?: (id: string) => void;
   showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
@@ -40,6 +41,7 @@ const LeaveInfoView: React.FC<LeaveInfoViewProps> = ({
   setLeaveQuotas = () => {}, 
   leaveHistory = [], 
   setLeaveHistory = () => {},
+  onDelete = () => {},
   showToast = () => {}
 }) => {
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
@@ -180,6 +182,7 @@ const LeaveInfoView: React.FC<LeaveInfoViewProps> = ({
 
   const confirmDelete = () => {
     if (!recordToDelete) return;
+    onDelete(recordToDelete);
     setLeaveHistory(prev => prev.filter(r => r.id !== recordToDelete));
     setIsDeleteConfirmOpen(false);
     setRecordToDelete(null);

@@ -35,6 +35,8 @@ interface SavingsInfoViewProps {
   onAddTransaction?: (tx: Omit<Transaction, 'id'>) => string;
   onEditTransaction?: (tx: Transaction) => void;
   onDeleteTransaction?: (id: string) => void;
+  onDeleteGoal?: (id: string) => void;
+  onDeleteRecord?: (id: string) => void;
   showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
@@ -53,6 +55,8 @@ const SavingsInfoView: React.FC<SavingsInfoViewProps> = ({
   onAddTransaction = () => '',
   onEditTransaction = () => {},
   onDeleteTransaction = () => {},
+  onDeleteGoal,
+  onDeleteRecord,
   showToast = () => {}
 }) => {
   const t = TRANSLATIONS[language as keyof typeof TRANSLATIONS];
@@ -385,7 +389,11 @@ const SavingsInfoView: React.FC<SavingsInfoViewProps> = ({
       if (recordToDelete.transactionId) {
         onDeleteTransaction(recordToDelete.transactionId);
       }
-      setRecords(prev => prev.filter(r => r.id !== recordToDelete.id));
+      if (onDeleteRecord) {
+        onDeleteRecord(recordToDelete.id);
+      } else {
+        setRecords(prev => prev.filter(r => r.id !== recordToDelete.id));
+      }
       setGoals(prev => prev.map(g => g.id === recordToDelete.goalId ? { ...g, currentAmount: Math.max(0, g.currentAmount - recordToDelete.amount) } : g));
       setIsDeleteRecordConfirmOpen(false);
       setRecordToDelete(null);
@@ -400,8 +408,12 @@ const SavingsInfoView: React.FC<SavingsInfoViewProps> = ({
         if (r.transactionId) onDeleteTransaction(r.transactionId);
       });
 
-      setGoals(prev => prev.filter(g => g.id !== goalToDelete));
-      setRecords(prev => prev.filter(r => r.goalId !== goalToDelete));
+      if (onDeleteGoal) {
+        onDeleteGoal(goalToDelete);
+      } else {
+        setGoals(prev => prev.filter(g => g.id !== goalToDelete));
+        setRecords(prev => prev.filter(r => r.goalId !== goalToDelete));
+      }
       setIsDeleteGoalConfirmOpen(false);
       setIsGoalModalOpen(false);
       setGoalToDelete(null);

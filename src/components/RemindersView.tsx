@@ -19,10 +19,11 @@ interface RemindersViewProps {
   language: 'English' | 'বাংলা';
   reminders: Reminder[];
   setReminders: React.Dispatch<React.SetStateAction<Reminder[]>>;
+  onDelete?: (id: string) => void;
   showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
-const RemindersView: React.FC<RemindersViewProps> = ({ language, reminders, setReminders, showToast }) => {
+const RemindersView: React.FC<RemindersViewProps> = ({ language, reminders, setReminders, onDelete, showToast }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -179,7 +180,11 @@ const RemindersView: React.FC<RemindersViewProps> = ({ language, reminders, setR
 
   const confirmDelete = () => {
     if (reminderToDelete) {
-      setReminders(prev => prev.filter(r => r.id !== reminderToDelete));
+      if (onDelete) {
+        onDelete(reminderToDelete);
+      } else {
+        setReminders(prev => prev.filter(r => r.id !== reminderToDelete));
+      }
       setIsDeleteModalOpen(false);
       setReminderToDelete(null);
       showToast?.(language === 'English' ? 'Reminder deleted!' : 'রিমাইন্ডার মুছে ফেলা হয়েছে!', 'success');

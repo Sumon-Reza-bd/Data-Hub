@@ -31,6 +31,7 @@ interface BettingInfoViewProps {
   onAddTransaction?: (tx: Omit<Transaction, 'id'>) => string;
   onEditTransaction?: (tx: Transaction) => void;
   onDeleteTransaction?: (id: string) => void;
+  onDeleteRecord?: (id: string) => void;
   showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
@@ -40,6 +41,7 @@ const BettingInfoView: React.FC<BettingInfoViewProps> = ({
   onAddTransaction = () => '',
   onEditTransaction = () => {},
   onDeleteTransaction = () => {},
+  onDeleteRecord,
   showToast = () => {}
 }) => {
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
@@ -231,7 +233,11 @@ const BettingInfoView: React.FC<BettingInfoViewProps> = ({
       if (recordToDelete.transactionId) {
         onDeleteTransaction(recordToDelete.transactionId);
       }
-      setRecords(prev => prev.filter(r => r.id !== recordToDelete.id));
+      if (onDeleteRecord) {
+        onDeleteRecord(recordToDelete.id);
+      } else {
+        setRecords(prev => prev.filter(r => r.id !== recordToDelete.id));
+      }
       setIsDeleteModalOpen(false);
       setRecordToDelete(null);
       showToast?.('Betting record deleted!', 'success');

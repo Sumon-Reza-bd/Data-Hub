@@ -319,6 +319,44 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
               </div>
             </div>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 ml-4">
+                <div className="w-1 h-4 bg-emerald-600 rounded-full" />
+                <h2 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">{t.cloudStatus}</h2>
+              </div>
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] p-5 shadow-sm group">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-lg flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                    <ShieldCheck size={16} />
+                  </div>
+                  <div>
+                    <h3 className="text-[12px] font-black text-slate-800 dark:text-white uppercase tracking-tight">{t.cloudStatus}</h3>
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{t.backendUrl}</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                   <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Project URL</p>
+                      <p className="text-[10px] font-bold text-slate-600 dark:text-slate-300 truncate">
+                        {import.meta.env.VITE_SUPABASE_URL ? 'Connected to Custom Project' : 'Using Default Project'}
+                      </p>
+                      <p className="text-[8px] text-slate-400 mt-1 font-medium">
+                        {import.meta.env.VITE_SUPABASE_URL || 'https://jonkzprbhmysoeugfczy.supabase.co'}
+                      </p>
+                   </div>
+                   {!import.meta.env.VITE_SUPABASE_URL && (
+                     <div className="p-3 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-800/20 flex items-start gap-2">
+                        <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" />
+                        <p className="text-[9px] font-bold text-amber-700 dark:text-amber-400 leading-relaxed">
+                          {language === 'bn' 
+                            ? 'আপনি ডিফল্ট প্রজেক্ট ব্যবহার করছেন। আপনার নিজস্ব ডেটাবেস ব্যবহার করতে এনভায়রনমেন্ট ভেরিয়েবল সেট করুন।' 
+                            : 'You are using the default project. Set environment variables to use your own database.'}
+                        </p>
+                     </div>
+                   )}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

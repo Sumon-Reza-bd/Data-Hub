@@ -31,6 +31,7 @@ interface PayrollInfoViewProps {
   setPayrollProfile: React.Dispatch<React.SetStateAction<PayrollProfile>>;
   salaryHistory: SalaryHistoryItem[];
   setSalaryHistory: React.Dispatch<React.SetStateAction<SalaryHistoryItem[]>>;
+  onDeleteSalaryHistory?: (id: string) => void;
   showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
@@ -39,12 +40,18 @@ const PayrollInfoView: React.FC<PayrollInfoViewProps> = ({
   setPayrollProfile, 
   salaryHistory, 
   setSalaryHistory,
+  onDeleteSalaryHistory = () => {},
   showToast = () => {}
 }) => {
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       <PaySlipSection profileData={payrollProfile} setProfileData={setPayrollProfile} showToast={showToast} />
-      <SalarySection profileBaseDeduction={payrollProfile.baseDeduction} history={salaryHistory} setHistory={setSalaryHistory} />
+      <SalarySection 
+        profileBaseDeduction={payrollProfile.baseDeduction} 
+        history={salaryHistory} 
+        setHistory={setSalaryHistory} 
+        onDeleteSalaryHistory={onDeleteSalaryHistory}
+      />
     </div>
   );
 };
@@ -378,9 +385,10 @@ interface SalaryProps {
   profileBaseDeduction: number;
   history: SalaryHistoryItem[];
   setHistory: React.Dispatch<React.SetStateAction<SalaryHistoryItem[]>>;
+  onDeleteSalaryHistory?: (id: string) => void;
 }
 
-const SalarySection: React.FC<SalaryProps> = ({ profileBaseDeduction, history, setHistory }) => {
+const SalarySection: React.FC<SalaryProps> = ({ profileBaseDeduction, history, setHistory, onDeleteSalaryHistory = () => {} }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -474,6 +482,7 @@ const SalarySection: React.FC<SalaryProps> = ({ profileBaseDeduction, history, s
 
   const confirmDelete = () => {
     if (itemToDelete) {
+      onDeleteSalaryHistory(itemToDelete);
       setHistory(prev => prev.filter(h => h.id !== itemToDelete));
     }
     setIsDeleteModalOpen(false);

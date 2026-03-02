@@ -94,74 +94,79 @@ const App: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error'>('synced');
+  const [lastSynced, setLastSynced] = useState<Date | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Initial Data Fetch
-  useEffect(() => {
-    const fetchAllData = async () => {
-      setSyncStatus('syncing');
-      try {
-        const [
-          dbProfile,
-          dbTransactions,
-          dbReminders,
-          dbAttendance,
-          dbBills,
-          dbBetting,
-          dbLeaveQuotas,
-          dbLeaveHistory,
-          dbSavingsGoals,
-          dbSavingsRecords,
-          dbSalaryHistory
-        ] = await Promise.all([
-          supabaseService.getProfile(),
-          supabaseService.getTransactions(),
-          supabaseService.getReminders(),
-          supabaseService.getAttendance(),
-          supabaseService.getBills(),
-          supabaseService.getBettingRecords(),
-          supabaseService.getLeaveQuotas(),
-          supabaseService.getLeaveHistory(),
-          supabaseService.getSavingsGoals(),
-          supabaseService.getSavingsRecords(),
-          supabaseService.getSalaryHistory()
-        ]);
+  const fetchAllData = useCallback(async () => {
+    setSyncStatus('syncing');
+    try {
+      const [
+        dbProfile,
+        dbTransactions,
+        dbReminders,
+        dbAttendance,
+        dbBills,
+        dbBetting,
+        dbLeaveQuotas,
+        dbLeaveHistory,
+        dbSavingsGoals,
+        dbSavingsRecords,
+        dbSalaryHistory
+      ] = await Promise.all([
+        supabaseService.getProfile(),
+        supabaseService.getTransactions(),
+        supabaseService.getReminders(),
+        supabaseService.getAttendance(),
+        supabaseService.getBills(),
+        supabaseService.getBettingRecords(),
+        supabaseService.getLeaveQuotas(),
+        supabaseService.getLeaveHistory(),
+        supabaseService.getSavingsGoals(),
+        supabaseService.getSavingsRecords(),
+        supabaseService.getSalaryHistory()
+      ]);
 
-        if (dbProfile) setProfile(dbProfile);
-        if (dbTransactions.length > 0) setTransactions(dbTransactions);
-        if (dbReminders.length > 0) setReminders(dbReminders);
-        if (dbAttendance.length > 0) setAttendanceList(dbAttendance);
-        if (dbBills.length > 0) setBills(dbBills);
-        if (dbBetting.length > 0) setBettingRecords(dbBetting);
-        if (dbLeaveQuotas.length > 0) setLeaveQuotas(dbLeaveQuotas);
-        if (dbLeaveHistory.length > 0) setLeaveHistory(dbLeaveHistory);
-        if (dbSavingsGoals.length > 0) setSavingsGoals(dbSavingsGoals);
-        if (dbSavingsRecords.length > 0) setSavingsRecords(dbSavingsRecords);
-        if (dbSalaryHistory.length > 0) setSalaryHistory(dbSalaryHistory);
-        setSyncStatus('synced');
-      } catch (error) {
-        console.error('Error fetching data from Supabase:', error);
-        setSyncStatus('error');
-        // Fallback to default data if tables don't exist yet
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAllData();
+      if (dbProfile) setProfile(dbProfile);
+      if (dbTransactions.length > 0) setTransactions(dbTransactions);
+      if (dbReminders.length > 0) setReminders(dbReminders);
+      if (dbAttendance.length > 0) setAttendanceList(dbAttendance);
+      if (dbBills.length > 0) setBills(dbBills);
+      if (dbBetting.length > 0) setBettingRecords(dbBetting);
+      if (dbLeaveQuotas.length > 0) setLeaveQuotas(dbLeaveQuotas);
+      if (dbLeaveHistory.length > 0) setLeaveHistory(dbLeaveHistory);
+      if (dbSavingsGoals.length > 0) setSavingsGoals(dbSavingsGoals);
+      if (dbSavingsRecords.length > 0) setSavingsRecords(dbSavingsRecords);
+      if (dbSalaryHistory.length > 0) setSalaryHistory(dbSalaryHistory);
+      
+      setSyncStatus('synced');
+      setLastSynced(new Date());
+    } catch (error) {
+      console.error('Error fetching data from Supabase:', error);
+      setSyncStatus('error');
+    } finally {
+      setIsLoading(false);
+      setIsInitialLoad(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   // Sync Helper
   const syncWithSupabase = useCallback(async (syncFn: () => Promise<void>) => {
-    if (isLoading) return;
+    if (isLoading || isInitialLoad) return;
     setSyncStatus('syncing');
     try {
       await syncFn();
       setSyncStatus('synced');
+      setLastSynced(new Date());
     } catch (error) {
       console.error('Sync error:', error);
       setSyncStatus('error');
     }
-  }, [isLoading]);
+  }, [isLoading, isInitialLoad]);
 
   // Sync Handlers
   useEffect(() => {
@@ -467,6 +472,8 @@ const App: React.FC = () => {
           profile={profile}
           onMenuClick={() => setIsMobileMenuOpen(true)}
           syncStatus={syncStatus}
+          onRefresh={fetchAllData}
+          lastSynced={lastSynced}
         />
         
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4 md:p-8 bg-white dark:bg-slate-950 transition-colors duration-300">

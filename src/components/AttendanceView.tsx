@@ -42,6 +42,7 @@ interface AttendanceViewProps {
   theme?: ThemeType;
   activitiesList?: AttendanceRecord[];
   setActivitiesList?: React.Dispatch<React.SetStateAction<AttendanceRecord[]>>;
+  onDelete?: (id: string) => void;
   showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
@@ -55,6 +56,7 @@ const VerifiedBadge = () => (
 const AttendanceView: React.FC<AttendanceViewProps> = ({ 
   activitiesList = [], 
   setActivitiesList = () => {}, 
+  onDelete,
   showToast = () => {} 
 }) => {
   const currentMonthValue = (new Date().getMonth() + 1).toString().padStart(2, '0');
@@ -309,7 +311,11 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
 
   const handleDelete = () => {
     if (recordToDelete !== null) {
-      setActivitiesList(prev => prev.filter(a => a.id !== recordToDelete));
+      if (onDelete) {
+        onDelete(recordToDelete);
+      } else {
+        setActivitiesList(prev => prev.filter(a => a.id !== recordToDelete));
+      }
       setIsDeleteModalOpen(false);
       setRecordToDelete(null);
       showToast?.('Attendance record deleted!', 'success');
